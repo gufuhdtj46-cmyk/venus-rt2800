@@ -1,0 +1,77 @@
+name: Build venus boot.img with Ralink RT2800USB
+
+on:
+  workflow_dispatch:
+    inputs:
+      boot_url:
+        description: "Direct link to official boot.img of LineageOS 20261028 (venus)"
+        required: true
+      vendor_boot_url:
+        description: "Direct link to official vendor_boot.img of the same build (optional)"
+        required: false
+        default: ""
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    steps:
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential bc bison flex libssl-dev python3 libelf-dev gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi git curl tar cpio lz4 xz-utils
+
+      - name: Get exact LineageOS kernel source (g7ede20c8692e)
+        run: |
+          mkdir kernel
+          cd kernel
+          git init -q
+          git remote add origin https://github.com/LineageOS/android_kernel_xiaomi_sm8350.git
+          git fetch --depth 1 origin 7ede20c8692e0e0fc044754429e33cfd1d75c40d
+          git checkout -q FETCH_HEAD
+          curl -fL -o build_boot.sh https://github.com/jocay/android_kernel_xiaomi_sm8350/raw/refs/heads/lineage-23.2/build_boot.sh
+          chmod +x build_boot.sh
+
+      - name: Download official images
+        env:
+          BOOT_URL: ${{ inputs.boot_url }}
+          VBOOT_URL: ${{ inputs.vendor_boot_url }}
+        run: |
+          mkdir images
+          curl -fL --retry 3 -o images/boot.img "$BOOT_URL"
+          if [ -n "$VBOOT_URL" ]; then
+            curl -fL --retry 3 -o images/vendor_boot.img "$VBOOT_URL"
+          fi
+          ls -l images
+
+      - name: Add Ralink config fragment
+        run: |
+          cat > kernel/arch/arm64/configs/vendor/rt2800.config <<'EOF'
+          CONFIG_WLAN_VENDOR_RALINK=y
+          CONFIG_RT2X00=y
+          CONFIG_RT2800USB=y
+          EOF
+
+      - name: Stock build to record ABI baseline
+        working-directory: kernel
+        env:
+          IMAGES_DIR: ${{ github.workspace }}/images
+          EXTRA_CONFIGS: ""
+          SAVE_ABI_BASELINE: "1"
+        run: ./build_boot.sh
+
+      - name: Build with RT2800USB
+        working-directory: kernel
+        env:
+          IMAGES_DIR: ${{ github.workspace }}/images
+          EXTRA_CONFIGS: "rt2800.config"
+        run: ./build_boot.sh
+
+      - name: Show resulting config
+        run: grep -E "CONFIG_RT2X00=|CONFIG_RT2800USB=|CONFIG_WLAN_VENDOR_RALINK=" kernel/out/kernel_obj/.config
+
+      - name: Upload boot.img
+        uses: actions/upload-artifact@v4
+        with:
+          name: venus-boot-rt2800usb
+          path: kernel/out/boot.img
