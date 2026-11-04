@@ -21,13 +21,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential bc bison flex libssl-dev python3 libelf-dev gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi git curl tar cpio lz4 xz-utils
 
-      - name: Get exact LineageOS kernel source (g7ede20c8692e)
+      - name: Get exact LineageOS kernel source (a5c070f3fd9c)
         run: |
           mkdir kernel
           cd kernel
           git init -q
           git remote add origin https://github.com/LineageOS/android_kernel_xiaomi_sm8350.git
-          git fetch --depth 1 origin 7ede20c8692e0e0fc044754429e33cfd1d75c40d
+          git fetch --depth 1 origin a5c070f3fd9c
           git checkout -q FETCH_HEAD
           curl -fL -o build_boot.sh https://github.com/jocay/android_kernel_xiaomi_sm8350/raw/refs/heads/lineage-23.2/build_boot.sh
           chmod +x build_boot.sh
