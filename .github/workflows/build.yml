@@ -26,6 +26,12 @@ jobs:
             "https://github.com/Evolution-X-Devices/kernel_xiaomi_venus.git"
             "https://github.com/AOSP-for-venus/platform_kernel_xiaomi_sm8350.git"
             "https://github.com/crdroidandroid/android_kernel_xiaomi_sm8350.git"
+            "https://github.com/kamikaonashi/kernel_xiaomi_venus.git"
+            "https://github.com/vim-x/android_kernel_xiaomi_sm8350.git"
+            "https://github.com/Demon000/kernel_xiaomi_sm8350.git"
+            "https://github.com/pix106/android_kernel_xiaomi_sm8350.git"
+            "https://github.com/xiaomi-lisa-devs/android_kernel_xiaomi_sm8350.git"
+            "https://github.com/th7svenus/android_kernel_xiaomi_sm8350.git"
           )
 
           FOUND=""
