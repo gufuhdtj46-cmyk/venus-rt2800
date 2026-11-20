@@ -15,46 +15,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential bc bison flex libssl-dev python3 libelf-dev gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi git curl tar cpio lz4 xz-utils
 
-      - name: Find correct kernel source for commit a5c070f3fd9c
+      - name: Get LineageOS kernel source (latest lineage-21 branch, closest to Evolution X 14 era)
         run: |
           mkdir kernel
           cd kernel
-          git init -q
-
-          CANDIDATES=(
-            "https://github.com/LineageOS/android_kernel_xiaomi_sm8350.git"
-            "https://github.com/Evolution-X-Devices/kernel_xiaomi_venus.git"
-            "https://github.com/AOSP-for-venus/platform_kernel_xiaomi_sm8350.git"
-            "https://github.com/crdroidandroid/android_kernel_xiaomi_sm8350.git"
-            "https://github.com/kamikaonashi/kernel_xiaomi_venus.git"
-            "https://github.com/vim-x/android_kernel_xiaomi_sm8350.git"
-            "https://github.com/Demon000/kernel_xiaomi_sm8350.git"
-            "https://github.com/pix106/android_kernel_xiaomi_sm8350.git"
-            "https://github.com/xiaomi-lisa-devs/android_kernel_xiaomi_sm8350.git"
-            "https://github.com/th7svenus/android_kernel_xiaomi_sm8350.git"
-          )
-
-          FOUND=""
-          for url in "${CANDIDATES[@]}"; do
-            echo "=== Trying $url ==="
-            git remote remove origin 2>/dev/null || true
-            git remote add origin "$url"
-            if git fetch --depth 1 origin a5c070f3fd9c 2>/tmp/fetch_err; then
-              echo ">>> FOUND in $url <<<"
-              FOUND="$url"
-              git checkout -q FETCH_HEAD
-              break
-            else
-              cat /tmp/fetch_err
-            fi
-          done
-
-          if [ -z "$FOUND" ]; then
-            echo "COMMIT NOT FOUND IN ANY CANDIDATE REPO"
-            exit 1
-          fi
-
-          echo "$FOUND" > /tmp/found_repo.txt
+          git clone --depth 1 -b lineage-21 https://github.com/jocay/android_kernel_xiaomi_sm8350.git . || \
+          git clone --depth 1 -b lineage-23.2 https://github.com/jocay/android_kernel_xiaomi_sm8350.git .
           curl -fL -o build_boot.sh https://github.com/jocay/android_kernel_xiaomi_sm8350/raw/refs/heads/lineage-23.2/build_boot.sh
           chmod +x build_boot.sh
 
